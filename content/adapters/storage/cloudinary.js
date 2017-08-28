@@ -1,29 +1,15 @@
-const cloudinary = require('cloudinary');
-const BaseAdapter = require('ghost-storage-base');
+'use strict';
 
-class CloudinaryStore extends BaseAdapter {
-  constructor(config = {}) {
-    super();
-    this.config = config;
-    cloudinary.config(config);
-  }
+var Promise = require('bluebird');
+var cloudinary = require('cloudinary');
+var util = require('util');
+var BaseAdapter = require('ghost-storage-base');
 
-  save(image) {
-    const secure = this.config.secure || false;
-
-    return new Promise(function(resolve) {
-      cloudinary.uploader.upload(image.path, function(result) {
-        resolve(secure ? result.secure_url : result.url);
-      });
-    });
-  }
-
-  delete(image) {
-    return new Promise(function(resolve) {
-      cloudinary.uploader.destroy('zombie', function(result) {
-        resolve(result)
-      });
-    });
+class CloudinaryAdapter extends BaseAdapter{
+  constructor(options) {
+    super(options);
+    this.config = options || {};
+    cloudinary.config(options);
   }
 
   exists(filename) {
@@ -36,11 +22,33 @@ class CloudinaryStore extends BaseAdapter {
     });
   }
 
+  save(image, targetDir) {
+    var cloudinaryImageSetting = this.config.configuration;
+
+    return new Promise(function(resolve) {
+      cloudinary.uploader.upload(image.path, function(result) {
+        resolve(cloudinary.url(result.public_id.concat(".", result.format), cloudinaryImageSetting ));
+      });
+    });
+  }
+
   serve() {
-    return function (req, res, next) {
+    return function customServe(req, res, next) {
       next();
-    };
+    }
+  }
+
+  delete(image) {
+    return new Promise(function(resolve) {
+      cloudinary.uploader.destroy(image.path, function(result) {
+        resolve(result)
+      });
+    });
+  }
+
+  read() {
+    //Not used. The image is uploaded with the direct URL to the Cloudinary Service. No Need to pass through this plugin
   }
 }
 
-module.exports = CloudinaryStore;
+module.exports = CloudinaryAdapter;
