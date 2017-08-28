@@ -30,7 +30,6 @@ module.exports = {
         return themeLoader
             .loadOneTheme(activeThemeName)
             .then(function activeThemeHasLoaded(theme) {
-              console.log(theme)
                 // Validate
                 return validate
                     .check(theme)
