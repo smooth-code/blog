@@ -17,6 +17,8 @@ checkTheme = function checkTheme(theme, isZip) {
         checkPromise = gscan.check(theme.path);
     }
 
+    console.log('THEME', theme.path)
+
     return checkPromise.then(function resultHandler(checkedTheme) {
         checkedTheme = gscan.format(checkedTheme, {
             onlyFatalErrors: config.get('env') === 'production'
