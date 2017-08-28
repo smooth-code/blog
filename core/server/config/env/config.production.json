@@ -24,5 +24,11 @@
             "enabled": true
         },
         "transports": ["file", "stdout"]
+    },
+    "storage": {
+      "active": "cloudinary",
+      "cloudinary": {
+        "cloud_name": "smooth"
+      }
     }
 }
