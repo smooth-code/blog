@@ -1,7 +1,7 @@
 const cloudinary = require('cloudinary');
 const BaseAdapter = require('ghost-storage-base');
 
-class CloudinaryStore {
+class CloudinaryStore extends BaseAdapter {
   constructor(config = {}) {
     super();
     this.config = config;
