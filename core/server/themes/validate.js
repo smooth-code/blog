@@ -9,8 +9,6 @@ checkTheme = function checkTheme(theme, isZip) {
         // gscan can slow down boot time if we require on boot, for now nest the require.
         gscan = require('gscan');
 
-    console.log('THEME', theme.path)
-
     if (isZip) {
         checkPromise = gscan.checkZip(theme, {
             keepExtractedDir: true
@@ -18,7 +16,6 @@ checkTheme = function checkTheme(theme, isZip) {
     } else {
         checkPromise = gscan.check(theme.path);
     }
-
 
     return checkPromise.then(function resultHandler(checkedTheme) {
         checkedTheme = gscan.format(checkedTheme, {
