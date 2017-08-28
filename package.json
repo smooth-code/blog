@@ -53,7 +53,7 @@
     "ghost-ignition": "2.8.14",
     "ghost-storage-base": "0.0.1",
     "glob": "5.0.15",
-    "gscan": "1.1.7",
+    "gscan": "^1.1.7",
     "html-to-text": "3.3.0",
     "image-size": "0.6.1",
     "intl": "1.2.5",

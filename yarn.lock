@@ -2137,7 +2137,7 @@ grunt@~0.4.0:
     underscore.string "~2.2.1"
     which "~1.0.5"
 
-gscan@1.1.7:
+gscan@^1.1.7:
   version "1.1.7"
   resolved "https://registry.yarnpkg.com/gscan/-/gscan-1.1.7.tgz#27244687af130851b7d04cd035f4dae8d96bedec"
   dependencies:
