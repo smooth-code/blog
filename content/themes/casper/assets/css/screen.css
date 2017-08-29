@@ -110,7 +110,7 @@ body {
     padding-top: 12px;
     padding-bottom: 12px;
     color: #fff;
-    background: color(var(--darkgrey) l(-5%)) no-repeat center center;
+    background: color(var(--primary) l(-5%)) no-repeat center center;
     background-size: cover;
 }
 
@@ -564,7 +564,7 @@ The first (most recent) post in the list is styled to be bigger than the others 
 }
 
 .post-full-meta-date {
-    color: var(--blue);
+    color: var(--primary);
 }
 
 .post-full-title {
@@ -688,11 +688,11 @@ The first (most recent) post in the list is styled to be bigger than the others 
 
 .post-full-content a {
     color: #000;
-    box-shadow: var(--blue) 0 -1px 0 inset;
+    box-shadow: var(--primary) 0 -1px 0 inset;
 }
 
 .post-full-content a:hover {
-    color: var(--blue);
+    color: var(--primary);
     text-decoration: none;
 }
 
@@ -761,7 +761,7 @@ Usage (In Ghost editor):
     margin: 0 0 1.5em 0;
     padding: 1.5em 0;
     border: 0;
-    color: var(--blue);
+    color: var(--primary);
     font-size: 3rem;
     line-height: 1.6em;
     text-align: center;
@@ -886,7 +886,7 @@ Usage (In Ghost editor):
 }
 
 .footnote-backref {
-    color: var(--blue) !important;
+    color: var(--primary) !important;
     font-size: 1.2rem;
     font-weight: bold;
     text-decoration: none !important;
@@ -1052,10 +1052,10 @@ Usage (In Ghost editor):
     text-align: center;
     text-shadow: 0 -1px 0 rgba(0,0,0,0.1);
     background: linear-gradient(
-    color(var(--blue) whiteness(+7%)),
-    color(var(--blue) lightness(-7%) saturation(-10%)) 60%,
-    color(var(--blue) lightness(-7%) saturation(-10%)) 90%,
-    color(var(--blue) lightness(-4%) saturation(-10%))
+    color(var(--primary) whiteness(+7%)),
+    color(var(--primary) lightness(-7%) saturation(-10%)) 60%,
+    color(var(--primary) lightness(-7%) saturation(-10%)) 90%,
+    color(var(--primary) lightness(-4%) saturation(-10%))
     );
     border-radius: 5px;
     box-shadow: 0 0 0 1px inset rgba(0,0,0,0.14);
@@ -1065,7 +1065,7 @@ Usage (In Ghost editor):
 
 .subscribe-form button:active,
 .subscribe-form button:focus {
-    background: color(var(--blue) lightness(-9%) saturation(-10%));
+    background: color(var(--primary) lightness(-9%) saturation(-10%));
 }
 
 @media (max-width: 650px) {
@@ -1153,8 +1153,8 @@ Usage (In Ghost editor):
 }
 
 .author-card-button:hover {
-    border-color: var(--blue);
-    color: var(--blue);
+    border-color: var(--primary);
+    color: var(--primary);
     text-decoration: none;
 }
 
@@ -1445,7 +1445,7 @@ Usage (In Ghost editor):
     width: 100%;
     height: 2px;
     border: none;
-    color: var(--blue);
+    color: var(--primary);
     background: transparent;
 
     appearance: none;
@@ -1456,11 +1456,11 @@ Usage (In Ghost editor):
 }
 
 .progress::-webkit-progress-value {
-    background-color: var(--blue);
+    background-color: var(--primary);
 }
 
 .progress::-moz-progress-bar {
-    background-color: var(--blue);
+    background-color: var(--primary);
 }
 
 .progress-container {
@@ -1477,7 +1477,7 @@ Usage (In Ghost editor):
     display: block;
     width: 50%;
     height: inherit;
-    background-color: var(--blue);
+    background-color: var(--primary);
 }
 
 @media (max-width: 900px) {
@@ -1740,10 +1740,10 @@ Usage (In Ghost editor):
     text-align: center;
     text-shadow: 0 -1px 0 rgba(0,0,0,0.1);
     background: linear-gradient(
-    color(var(--blue) whiteness(+7%)),
-    color(var(--blue) lightness(-7%) saturation(-10%)) 60%,
-    color(var(--blue) lightness(-7%) saturation(-10%)) 90%,
-    color(var(--blue) lightness(-4%) saturation(-10%))
+    color(var(--primary) whiteness(+7%)),
+    color(var(--primary) lightness(-7%) saturation(-10%)) 60%,
+    color(var(--primary) lightness(-7%) saturation(-10%)) 90%,
+    color(var(--primary) lightness(-4%) saturation(-10%))
     );
     border-radius: 8px;
     box-shadow: 0 0 0 1px inset rgba(0,0,0,0.14);
@@ -1753,7 +1753,7 @@ Usage (In Ghost editor):
 
 .subscribe-overlay button:active,
 .subscribe-overlay button:focus {
-    background: color(var(--blue) lightness(-9%) saturation(-10%));
+    background: color(var(--primary) lightness(-9%) saturation(-10%));
 }
 
 .subscribe-overlay-close {

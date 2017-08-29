@@ -14,6 +14,7 @@
     --whitegrey: #e5eff5;
     --pink: #fa3a57;
     --brown: #a3821a;
+    --primary: #BD4932;
 }
 
 /* Reset
@@ -298,7 +299,7 @@ body {
 
 ::selection {
     text-shadow: none;
-    background: color(var(--blue) lightness(+30%));
+    background: color(var(--primary) lightness(+30%));
 }
 
 hr {
@@ -411,7 +412,7 @@ blockquote cite a {
 }
 
 a {
-    color: color(var(--blue) l(-5%));
+    color: color(var(--primary) l(-5%));
     text-decoration: none;
 }
 
