@@ -27,7 +27,7 @@ class CloudinaryAdapter extends BaseAdapter{
 
     return new Promise(function(resolve) {
       cloudinary.uploader.upload(image.path, function(result) {
-        resolve(cloudinary.url(result.public_id.concat(".", result.format), cloudinaryImageSetting ));
+        resolve(cloudinary.url(result.public_id.concat(".", result.format), cloudinaryImageSetting ).replace('http://', 'https://'));
       });
     });
   }
