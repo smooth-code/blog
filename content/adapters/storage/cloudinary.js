@@ -60,6 +60,8 @@ class CloudinaryAdapter extends BaseAdapter{
       // remove trailing slashes
       options.path = (options.path || '').replace(/\/$|\\$/, '');
 
+      console.log('READ PATH', options.path)
+
       var targetPath = path.join(this.storagePath, options.path);
 
       return new Promise(function (resolve, reject) {
