@@ -168,7 +168,7 @@ body {
 }
 
 .site-description {
-    margin: 0;
+    margin: 10px 0 0;
     padding: 5px 0;
     font-size: 2.2rem;
     font-weight: 300;
