@@ -110,7 +110,7 @@ module.exports = function ghost_head(options) {
                 head.push('<meta name="description" content="' + escapeExpression(metaData.metaDescription) + '" />');
             }
 
-            head.push('<link rel="shortcut icon" href="' + favicon + '" type="image/' + iconType + '" />');
+            head.push('<link rel="shortcut icon" href="/public/favicon.png" type="image/png" />');
             head.push('<link rel="canonical" href="' +
                 escapeExpression(metaData.canonicalUrl) + '" />');
             head.push('<meta name="referrer" content="' + referrerPolicy + '" />');
