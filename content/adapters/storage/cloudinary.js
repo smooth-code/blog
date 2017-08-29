@@ -2,6 +2,8 @@
 
 var Promise = require('bluebird');
 var cloudinary = require('cloudinary');
+var path = require('path');
+var fs = require('fs');
 var util = require('util');
 var BaseAdapter = require('ghost-storage-base');
 
@@ -46,8 +48,32 @@ class CloudinaryAdapter extends BaseAdapter{
     });
   }
 
-  read() {
-    //Not used. The image is uploaded with the direct URL to the Cloudinary Service. No Need to pass through this plugin
+  /**
+   * Reads bytes from disk for a target image
+   * - path of target image (without content path!)
+   *
+   * @param options
+   */
+  read(options) {
+      options = options || {};
+
+      // remove trailing slashes
+      options.path = (options.path || '').replace(/\/$|\\$/, '');
+
+      var targetPath = path.join(this.storagePath, options.path);
+
+      return new Promise(function (resolve, reject) {
+          fs.readFile(targetPath, function (err, bytes) {
+              if (err) {
+                  return reject(new errors.GhostError({
+                      err: err,
+                      message: 'Could not read image: ' + targetPath
+                  }));
+              }
+
+              resolve(bytes);
+          });
+      });
   }
 }
 
