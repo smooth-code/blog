@@ -49,5 +49,8 @@
     },
     "config": {
         "posts_per_page": 25
+    },
+    "dependencies": {
+        "request": "^2.81.0"
     }
 }

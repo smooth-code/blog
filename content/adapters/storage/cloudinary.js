@@ -5,6 +5,7 @@ var cloudinary = require('cloudinary');
 var path = require('path');
 var fs = require('fs');
 var util = require('util');
+var request = require('request');
 var BaseAdapter = require('ghost-storage-base');
 
 class CloudinaryAdapter extends BaseAdapter{
@@ -55,27 +56,14 @@ class CloudinaryAdapter extends BaseAdapter{
    * @param options
    */
   read(options) {
-      options = options || {};
+    options = options || {};
 
-      // remove trailing slashes
-      options.path = (options.path || '').replace(/\/$|\\$/, '');
-
-      console.log('READ PATH', options.path)
-
-      var targetPath = path.join(this.storagePath, options.path);
-
-      return new Promise(function (resolve, reject) {
-          fs.readFile(targetPath, function (err, bytes) {
-              if (err) {
-                  return reject(new errors.GhostError({
-                      err: err,
-                      message: 'Could not read image: ' + targetPath
-                  }));
-              }
-
-              resolve(bytes);
-          });
-      });
+    return new Promise(function (resolve, reject) {
+      request(options.path, function (err, response, buffer) {
+        if (err) reject(err)
+        else resolve(buffer)
+      })
+    });
   }
 }
 
