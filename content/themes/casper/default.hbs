@@ -14,6 +14,8 @@
     {{!-- Styles'n'Scripts --}}
     <link rel="stylesheet" type="text/css" href="{{asset "built/screen.css"}}" />
 
+    <link rel="stylesheet" type="text/css" href="{{asset "css/prism.css"}}" />
+
     {{!-- This tag outputes SEO meta+structured data and other important settings --}}
     {{ghost_head}}
 
@@ -75,5 +77,6 @@
     {{!-- Ghost outputs important scripts and data with this tag - it should always be the very last thing before the closing body tag --}}
     {{ghost_foot}}
 
+    <script type="text/javascript" src="{{asset "js/prism.js"}}"></script>
 </body>
 </html>
