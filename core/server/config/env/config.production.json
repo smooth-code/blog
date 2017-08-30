@@ -6,10 +6,6 @@
             "user"     : "root",
             "password" : "",
             "database" : "ghost"
-        },
-        "pool": {
-          "min": 1,
-          "max": 5
         }
     },
     "auth": {
@@ -24,11 +20,5 @@
             "enabled": true
         },
         "transports": ["file", "stdout"]
-    },
-    "storage": {
-      "active": "cloudinary",
-      "cloudinary": {
-        "cloud_name": "smooth"
-      }
     }
 }

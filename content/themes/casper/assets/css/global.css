@@ -14,7 +14,6 @@
     --whitegrey: #e5eff5;
     --pink: #fa3a57;
     --brown: #a3821a;
-    --primary: #BD4932;
 }
 
 /* Reset
@@ -299,7 +298,7 @@ body {
 
 ::selection {
     text-shadow: none;
-    background: color(var(--primary) lightness(+30%));
+    background: color(var(--blue) lightness(+30%));
 }
 
 hr {
@@ -342,7 +341,7 @@ blockquote {
 
 ol,
 ul {
-    padding-left: 1em;
+    padding-left: 1.3em;
     padding-right: 1.5em;
 }
 
@@ -363,7 +362,7 @@ ol {
 
 li {
     margin: 0.5em 0;
-    padding-left: 0.5em;
+    padding-left: 0.3em;
     line-height: 1.6em;
 }
 
@@ -412,7 +411,7 @@ blockquote cite a {
 }
 
 a {
-    color: color(var(--primary) l(-5%));
+    color: color(var(--blue) l(-5%));
     text-decoration: none;
 }
 

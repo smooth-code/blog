@@ -64,7 +64,6 @@ _private.loadNconf = function loadNconf(options) {
      * values we have to set manual
      */
     nconf.set('env', env);
-    if (process.env.PORT) nconf.set('server:port', process.env.PORT);
 
     // Wrap this in a check, because else nconf.get() is executed unnecessarily
     // To output this, use DEBUG=ghost:*,ghost-config
