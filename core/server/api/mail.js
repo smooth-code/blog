@@ -1,15 +1,14 @@
 // # Mail API
 // API for sending Mail
 
-var Promise       = require('bluebird'),
-    pipeline      = require('../utils/pipeline'),
-    errors        = require('../errors'),
-    mail          = require('../mail'),
-    Models        = require('../models'),
-    utils         = require('./utils'),
-    notifications = require('./notifications'),
-    i18n          = require('../i18n'),
-    docName       = 'mail',
+var Promise = require('bluebird'),
+    pipeline = require('../utils/pipeline'),
+    apiUtils = require('./utils'),
+    models = require('../models'),
+    i18n = require('../i18n'),
+    mail = require('../mail'),
+    notificationsAPI = require('./notifications'),
+    docName = 'mail',
     mailer,
     apiMail;
 
@@ -23,7 +22,7 @@ function sendMail(object) {
 
     return mailer.send(object.mail[0].message).catch(function (err) {
         if (mailer.state.usingDirect) {
-            notifications.add(
+            notificationsAPI.add(
                 {notifications: [{
                     type: 'warn',
                     message: [
@@ -36,7 +35,7 @@ function sendMail(object) {
             );
         }
 
-        return Promise.reject(new errors.EmailError({err: err}));
+        return Promise.reject(err);
     });
 }
 
@@ -84,7 +83,7 @@ apiMail = {
         }
 
         tasks = [
-            utils.handlePermissions(docName, 'send'),
+            apiUtils.handlePermissions(docName, 'send'),
             send,
             formatResponse
         ];
@@ -108,7 +107,7 @@ apiMail = {
          */
 
         function modelQuery() {
-            return Models.User.findOne({id: options.context.user});
+            return models.User.findOne({id: options.context.user});
         }
 
         /**
