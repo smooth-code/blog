@@ -421,6 +421,16 @@
                     "name": "Upload redirects",
                     "action_type": "upload",
                     "object_type": "redirect"
+                },
+                {
+                    "name": "Add webhooks",
+                    "action_type": "add",
+                    "object_type": "webhook"
+                },
+                {
+                    "name": "Delete webhooks",
+                    "action_type": "destroy",
+                    "object_type": "webhook"
                 }
             ]
         },
@@ -438,6 +448,7 @@
                     "id": "5951f5fca366002ebd5dbef7",
                     "name": "Ghost",
                     "email": "ghost-author@example.com",
+                    "bio": "You can delete this user to remove all the welcome posts",
                     "status": "active",
                     "roles": ["Author"]
                 }
@@ -471,7 +482,8 @@
                     "client": "all",
                     "subscriber": "all",
                     "invite": "all",
-                    "redirect": "all"
+                    "redirect": "all",
+                    "webhook": "all"
                 },
                 "Editor": {
                     "post": "all",
@@ -482,7 +494,8 @@
                     "role": "all",
                     "client": "all",
                     "subscriber": ["add"],
-                    "invite": "all"
+                    "invite": "all",
+                    "theme": ["browse"]
                 },
                 "Author": {
                     "post": ["browse", "read", "add"],
@@ -492,7 +505,8 @@
                     "user": ["browse", "read"],
                     "role": ["browse"],
                     "client": "all",
-                    "subscriber": ["add"]
+                    "subscriber": ["add"],
+                    "theme": ["browse"]
                 }
             }
         },

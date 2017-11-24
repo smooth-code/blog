@@ -63,18 +63,18 @@ function createCustomNotification(message) {
     }
 
     var notification = {
-        status: 'alert',
-        type: 'info',
-        custom: true,
-        uuid: message.id,
-        dismissible: true,
-        message: message.content
-    },
-    getAllNotifications = api.notifications.browse({context: {internal: true}}),
-    getSeenNotifications = api.settings.read(_.extend({key: 'seen_notifications'}, internal));
+            status: 'alert',
+            type: 'info',
+            custom: true,
+            uuid: message.id,
+            dismissible: true,
+            message: message.content
+        },
+        getAllNotifications = api.notifications.browse({context: {internal: true}}),
+        getSeenNotifications = api.settings.read(_.extend({key: 'seen_notifications'}, internal));
 
     return Promise.join(getAllNotifications, getSeenNotifications, function joined(all, seen) {
-        var isSeen      = _.includes(JSON.parse(seen.settings[0].value || []), notification.id),
+        var isSeen = _.includes(JSON.parse(seen.settings[0].value || []), notification.id),
             isDuplicate = _.some(all.notifications, {message: notification.message});
 
         if (!isSeen && !isDuplicate) {
@@ -233,7 +233,7 @@ function updateCheck() {
 
             if (nextUpdateCheck && nextUpdateCheck.value && nextUpdateCheck.value > moment().unix()) {
                 // It's not time to check yet
-                return;
+                return; // eslint-disable-line no-useless-return
             } else {
                 // We need to do a check
                 return updateCheckRequest()
@@ -249,7 +249,7 @@ function showUpdateNotification() {
         var display = response.settings[0];
 
         // @TODO: We only show minor/major releases. This is a temporary fix. #5071 is coming soon.
-        if (display && display.value && currentVersion && semver.patch(display.value) === 0) {
+        if (display && display.value && currentVersion && semver.gt(display.value, currentVersion) && semver.patch(display.value) === 0) {
             return display.value;
         }
 

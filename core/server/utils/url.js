@@ -1,5 +1,5 @@
-// Contains all path information to be used throughout
-// the codebase.
+// Contains all path information to be used throughout the codebase.
+// Assumes that config.url is set, and is valid
 
 var moment            = require('moment-timezone'),
     _                 = require('lodash'),
@@ -41,16 +41,13 @@ function getBlogUrl(secure) {
  * @return {string} URL a subdirectory if configured.
  */
 function getSubdir() {
-    var localPath, subdir;
-
     // Parse local path location
-    if (config.get('url')) {
-        localPath = url.parse(config.get('url')).path;
+    var localPath = url.parse(config.get('url')).path,
+        subdir;
 
-        // Remove trailing slash
-        if (localPath !== '/') {
-            localPath = localPath.replace(/\/$/, '');
-        }
+    // Remove trailing slash
+    if (localPath !== '/') {
+        localPath = localPath.replace(/\/$/, '');
     }
 
     subdir = localPath === '/' ? '' : localPath;
@@ -227,13 +224,13 @@ function urlFor(context, data, absolute) {
         knownObjects = ['post', 'tag', 'author', 'image', 'nav'], baseUrl,
         hostname,
 
-    // this will become really big
-    knownPaths = {
-        home: '/',
-        rss: '/rss/',
-        api: API_PATH,
-        sitemap_xsl: '/sitemap.xsl'
-    };
+        // this will become really big
+        knownPaths = {
+            home: '/',
+            rss: '/rss/',
+            api: API_PATH,
+            sitemap_xsl: '/sitemap.xsl'
+        };
 
     // Make data properly optional
     if (_.isBoolean(data)) {
@@ -274,31 +271,22 @@ function urlFor(context, data, absolute) {
             urlPath = data.nav.url;
             secure = data.nav.secure || secure;
             baseUrl = getBlogUrl(secure);
-            hostname = baseUrl.split('//')[1] + getSubdir();
+            hostname = baseUrl.split('//')[1];
 
+            // If the hostname is present in the url
             if (urlPath.indexOf(hostname) > -1
+                // do no not apply, if there is a subdomain, or a mailto link
                 && !urlPath.split(hostname)[0].match(/\.|mailto:/)
-                && urlPath.split(hostname)[1].substring(0,1) !== ':') {
-                // make link relative to account for possible
-                // mismatch in http/https etc, force absolute
-                // do not do so if link is a subdomain of blog url
-                // or if hostname is inside of the slug
-                // or if slug is a port
+                // do not apply, if there is a port after the hostname
+                && urlPath.split(hostname)[1].substring(0, 1) !== ':') {
+                // make link relative to account for possible mismatch in http/https etc, force absolute
                 urlPath = urlPath.split(hostname)[1];
-                if (urlPath.substring(0, 1) !== '/') {
-                    urlPath = '/' + urlPath;
-                }
+                urlPath = urlJoin('/', urlPath);
                 absolute = true;
             }
         }
     } else if (context === 'home' && absolute) {
         urlPath = getBlogUrl(secure);
-
-        // CASE: with or without protocol?
-        // @TODO: rename cors
-        if (data && data.cors) {
-            urlPath = urlPath.replace(/^.*?:\/\//g, '//');
-        }
 
         // CASE: there are cases where urlFor('home') needs to be returned without trailing
         // slash e. g. the `{{@blog.url}}` helper. See https://github.com/TryGhost/Ghost/issues/8569
@@ -332,7 +320,7 @@ function urlFor(context, data, absolute) {
         }
     } else if (_.isString(context) && _.indexOf(_.keys(knownPaths), context) !== -1) {
         // trying to create a url for a named path
-        urlPath = knownPaths[context] || '/';
+        urlPath = knownPaths[context];
     }
 
     // This url already has a protocol so is likely an external url to be returned
@@ -349,12 +337,28 @@ function isSSL(urlToParse) {
     return protocol === 'https:';
 }
 
+function redirect301(res, redirectUrl) {
+    res.set({'Cache-Control': 'public, max-age=' + config.get('caching:301:maxAge')});
+    return res.redirect(301, redirectUrl);
+}
+
+function redirectToAdmin(status, res, adminPath) {
+    var redirectUrl = urlJoin(urlFor('admin'), adminPath, '/');
+
+    if (status === 301) {
+        return redirect301(res, redirectUrl);
+    }
+    return res.redirect(redirectUrl);
+}
+
 module.exports.getProtectedSlugs = getProtectedSlugs;
 module.exports.getSubdir = getSubdir;
 module.exports.urlJoin = urlJoin;
 module.exports.urlFor = urlFor;
 module.exports.isSSL = isSSL;
 module.exports.urlPathForPost = urlPathForPost;
+module.exports.redirectToAdmin = redirectToAdmin;
+module.exports.redirect301 = redirect301;
 
 /**
  * If you request **any** image in Ghost, it get's served via

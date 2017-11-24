@@ -13,21 +13,6 @@ var debug = require('ghost-ignition').debug('utils:image-size'),
     getImageSizeFromFilePath;
 
 /**
- * @description compares the imagePath with a regex that reflects our local file storage
- * @param {String} imagePath as URL or filepath
- * @returns {Array} if match is true or null if not
- */
-function isLocalImage(imagePath) {
-    imagePath = utils.url.urlFor('image', {image: imagePath}, true);
-
-    if (imagePath) {
-        return imagePath.match(new RegExp('^' + utils.url.urlJoin(utils.url.urlFor('home', true), utils.url.getSubdir(), '/', utils.url.STATIC_IMAGE_URL_PREFIX)));
-    } else {
-        return false;
-    }
-}
-
-/**
  * @description processes the Buffer result of an image file
  * @param {Object} options
  * @returns {Object} dimensions
@@ -93,7 +78,7 @@ getImageSizeFromUrl = function getImageSizeFromUrl(imagePath) {
         parsedUrl,
         timeout = config.get('times:getImageSizeTimeoutInMS') || 10000;
 
-    if (isLocalImage(imagePath)) {
+    if (storageUtils.isLocalImage(imagePath)) {
         // don't make a request for a locally stored image
         return getImageSizeFromFilePath(imagePath);
     }
@@ -155,14 +140,16 @@ getImageSizeFromUrl = function getImageSizeFromUrl(imagePath) {
             context: err.url || imagePath
         }));
     }).catch(function (err) {
-        if (err instanceof errors.GhostError) {
+        if (errors.utils.isIgnitionError(err)) {
             return Promise.reject(err);
         }
+
         return Promise.reject(new errors.InternalServerError({
             message: 'Unknown Request error.',
             code: 'IMAGE_SIZE_URL',
             statusCode: err.statusCode,
-            context: err.url || imagePath
+            context: err.url || imagePath,
+            err: err
         }));
     });
 };

@@ -2,6 +2,7 @@ var Settings,
     Promise        = require('bluebird'),
     _              = require('lodash'),
     uuid           = require('uuid'),
+    crypto         = require('crypto'),
     ghostBookshelf = require('./base'),
     errors         = require('../errors'),
     events         = require('../events'),
@@ -19,7 +20,8 @@ function parseDefaultSettings() {
     var defaultSettingsInCategories = require('../data/schema/').defaultSettings,
         defaultSettingsFlattened = {},
         dynamicDefault = {
-            db_hash: uuid.v4()
+            db_hash: uuid.v4(),
+            public_hash: crypto.randomBytes(15).toString('hex')
         };
 
     _.each(defaultSettingsInCategories, function each(settings, categoryName) {
@@ -116,22 +118,27 @@ Settings = ghostBookshelf.Model.extend({
             item = self.filterData(item);
 
             return Settings.forge({key: item.key}).fetch(options).then(function then(setting) {
-                var saveData = {};
-
                 if (setting) {
-                    if (item.hasOwnProperty('value')) {
-                        saveData.value = item.value;
-                    }
-                    // Internal context can overwrite type (for fixture migrations)
-                    if (options.context && options.context.internal && item.hasOwnProperty('type')) {
-                        saveData.type = item.type;
-                    }
                     // it's allowed to edit all attributes in case of importing/migrating
                     if (options.importing) {
-                        saveData = item;
-                    }
+                        return setting.save(item, options);
+                    } else {
+                        // If we have a value, set it.
+                        if (item.hasOwnProperty('value')) {
+                            setting.set('value', item.value);
+                        }
+                        // Internal context can overwrite type (for fixture migrations)
+                        if (options.context && options.context.internal && item.hasOwnProperty('type')) {
+                            setting.set('type', item.type);
+                        }
 
-                    return setting.save(saveData, options);
+                        // If anything has changed, save the updated model
+                        if (setting.hasChanged()) {
+                            return setting.save(null, options);
+                        }
+
+                        return setting;
+                    }
                 }
 
                 return Promise.reject(new errors.NotFoundError({message: i18n.t('errors.models.settings.unableToFindSetting', {key: item.key})}));

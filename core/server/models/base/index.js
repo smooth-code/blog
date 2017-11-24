@@ -45,6 +45,27 @@ ghostBookshelf.plugin(plugins.pagination);
 // Update collision plugin
 ghostBookshelf.plugin(plugins.collision);
 
+// Manages nested updates (relationships)
+ghostBookshelf.plugin('bookshelf-relations', {
+    allowedOptions: ['context'],
+    unsetRelations: true,
+    hooks: {
+        belongsToMany: {
+            after: function (existing, targets, options) {
+                // reorder tags
+                return Promise.each(targets.models, function (target, index) {
+                    return existing.updatePivot({
+                        sort_order: index
+                    }, _.extend({}, options, {query: {where: {tag_id: target.id}}}));
+                });
+            },
+            beforeRelationCreation: function onCreatingRelation(model, data) {
+                data.id = ObjectId.generate();
+            }
+        }
+    }
+});
+
 // Cache an instance of the base model prototype
 proto = ghostBookshelf.Model.prototype;
 
@@ -119,21 +140,56 @@ ghostBookshelf.Model = ghostBookshelf.Model.extend({
                     return Promise.resolve(self.onValidate.apply(self, args));
                 });
         });
+
+        // NOTE: Please keep here. If we don't initialize the parent, bookshelf-relations won't work.
+        proto.initialize.call(this);
     },
 
     onValidate: function onValidate() {
         return validation.validateSchema(this.tableName, this.toJSON());
     },
 
+    /**
+     * http://knexjs.org/#Builder-forUpdate
+     * https://dev.mysql.com/doc/refman/5.7/en/innodb-locking-reads.html
+     *
+     * Lock target collection/model for further update operations.
+     * This avoids collisions and possible content override cases.
+     */
+    onFetching: function onFetching(model, columns, options) {
+        if (options.forUpdate && options.transacting) {
+            options.query.forUpdate();
+        }
+    },
+
+    onFetchingCollection: function onFetchingCollection(model, columns, options) {
+        if (options.forUpdate && options.transacting) {
+            options.query.forUpdate();
+        }
+    },
+
+    /**
+     * Adding resources implies setting these properties on the server side
+     * - set `created_by` based on the context
+     * - set `updated_by` based on the context
+     * - the bookshelf `timestamps` plugin sets `created_at` and `updated_at`
+     *   - if plugin is disabled (e.g. import) we have a fallback condition
+     *
+     * Exceptions: internal context or importing
+     */
     onCreating: function onCreating(newObj, attr, options) {
         // id = 0 is still a valid value for external usage
         if (_.isUndefined(newObj.id) || _.isNull(newObj.id)) {
             newObj.setId();
         }
 
-        if (schema.tables[this.tableName].hasOwnProperty('created_by') && !this.get('created_by')) {
-            this.set('created_by', this.contextUser(options));
+        if (schema.tables[this.tableName].hasOwnProperty('created_by')) {
+            if (!options.importing || (options.importing && !this.get('created_by'))) {
+                this.set('created_by', this.contextUser(options));
+            }
         }
+
+        this.set('updated_by', this.contextUser(options));
 
         if (!newObj.get('created_at')) {
             newObj.set('created_at', new Date());
@@ -144,13 +200,37 @@ ghostBookshelf.Model = ghostBookshelf.Model.extend({
         }
     },
 
-    onSaving: function onSaving(newObj, attr, options) {
+    onSaving: function onSaving(newObj) {
         // Remove any properties which don't belong on the model
         this.attributes = this.pick(this.permittedAttributes());
         // Store the previous attributes so we can tell what was updated later
         this._updatedAttributes = newObj.previousAttributes();
+    },
 
+    /**
+     * Changing resources implies setting these properties on the server side
+     * - set `updated_by` based on the context
+     * - ensure `created_at` never changes
+     * - ensure `created_by` never changes
+     * - the bookshelf `timestamps` plugin sets `updated_at` automatically
+     *
+     * Exceptions:
+     *   - importing data
+     *   - internal context
+     *   - if no context
+     */
+    onUpdating: function onUpdating(newObj, attr, options) {
         this.set('updated_by', this.contextUser(options));
+
+        if (options && options.context && !options.internal && !options.importing) {
+            if (newObj.hasDateChanged('created_at', {beforeWrite: true})) {
+                newObj.set('created_at', this.previous('created_at'));
+            }
+
+            if (newObj.hasChanged('created_by')) {
+                newObj.set('created_by', this.previous('created_by'));
+            }
+        }
     },
 
     /**
@@ -172,23 +252,29 @@ ghostBookshelf.Model = ghostBookshelf.Model.extend({
     },
 
     /**
-     * all supported databases (pg, sqlite, mysql) return different values
+     * all supported databases (sqlite, mysql) return different values
      *
      * sqlite:
      *   - knex returns a UTC String
-     * pg:
-     *   - has an active UTC session through knex and returns UTC Date
      * mysql:
      *   - knex wraps the UTC value into a local JS Date
      */
     fixDatesWhenFetch: function fixDates(attrs) {
-        var self = this;
+        var self = this, dateMoment;
 
         _.each(attrs, function each(value, key) {
             if (value !== null
                 && schema.tables[self.tableName].hasOwnProperty(key)
                 && schema.tables[self.tableName][key].type === 'dateTime') {
-                attrs[key] = moment(value).toDate();
+                dateMoment = moment(value);
+
+                // CASE: You are somehow able to store e.g. 0000-00-00 00:00:00
+                // Protect the code base and return the current date time.
+                if (dateMoment.isValid()) {
+                    attrs[key] = dateMoment.startOf('seconds').toDate();
+                } else {
+                    attrs[key] = moment().startOf('seconds').toDate();
+                }
             }
         });
 
@@ -326,7 +412,7 @@ ghostBookshelf.Model = ghostBookshelf.Model.extend({
      */
     permittedOptions: function permittedOptions() {
         // terms to whitelist for all methods.
-        return ['context', 'include', 'transacting', 'importing'];
+        return ['context', 'include', 'transacting', 'importing', 'forUpdate'];
     },
 
     /**
@@ -363,7 +449,7 @@ ghostBookshelf.Model = ghostBookshelf.Model.extend({
      * proper strings, see `format`.
      */
     sanitizeData: function sanitizeData(data) {
-        var tableName = _.result(this.prototype, 'tableName');
+        var tableName = _.result(this.prototype, 'tableName'), dateMoment;
 
         _.each(data, function (value, key) {
             if (value !== null
@@ -371,7 +457,16 @@ ghostBookshelf.Model = ghostBookshelf.Model.extend({
                 && schema.tables[tableName][key].type === 'dateTime'
                 && typeof value === 'string'
             ) {
-                data[key] = moment(value).toDate();
+                dateMoment = moment(value);
+
+                // CASE: client sends `0000-00-00 00:00:00`
+                if (!dateMoment.isValid()) {
+                    throw new errors.ValidationError({
+                        message: i18n.t('errors.models.base.invalidDate', {key: key})
+                    });
+                }
+
+                data[key] = dateMoment.toDate();
             }
         });
 
@@ -385,7 +480,7 @@ ghostBookshelf.Model = ghostBookshelf.Model.extend({
      * @return {Object} The filtered results of `options`.
      */
     filterOptions: function filterOptions(options, methodName) {
-        var permittedOptions = this.permittedOptions(methodName),
+        var permittedOptions = this.permittedOptions(methodName, options),
             filteredOptions = _.pick(options, permittedOptions);
 
         return filteredOptions;
@@ -641,7 +736,17 @@ ghostBookshelf.Model = ghostBookshelf.Model.extend({
             });
         };
 
+        // the slug may never be longer than the allowed limit of 191 chars, but should also
+        // take the counter into count. We reduce a too long slug to 185 so we're always on the
+        // safe side, also in terms of checking for existing slugs already.
         slug = utils.safeString(base, options);
+
+        if (slug.length > 185) {
+            // CASE: don't cut the slug on import
+            if (!_.has(options, 'importing') || !options.importing) {
+                slug = slug.slice(0, 185);
+            }
+        }
 
         // If it's a user, let's try to cut it down (unless this is a human request)
         if (baseName === 'user' && options && options.shortSlug && slugTryCount === 1 && slug !== 'ghost-owner') {

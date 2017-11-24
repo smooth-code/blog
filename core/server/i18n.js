@@ -5,6 +5,8 @@ var supportedLocales    = ['en'],
     fs                  = require('fs'),
     chalk               = require('chalk'),
     MessageFormat       = require('intl-messageformat'),
+    logging             = require('./logging'),
+    errors              = require('./errors'),
 
     // TODO: fetch this dynamically based on overall blog settings (`key = "default_locale"`) in the `settings` table
     currentLocale       = 'en',
@@ -48,8 +50,10 @@ I18n = {
      * @param {string} msgPath Path with in the JSON language file to desired string (ie: "errors.init.jsNotBuilt")
      * @returns {string}
      */
-    findString: function findString(msgPath) {
-        var matchingString, path;
+    findString: function findString(msgPath, opts) {
+        var options = _.merge({log: true}, opts || {}),
+            matchingString, path;
+
         // no path? no string
         if (_.isEmpty(msgPath) || !_.isString(msgPath)) {
             chalk.yellow('i18n:t() - received an empty path.');
@@ -65,15 +69,24 @@ I18n = {
         path = msgPath.split('.');
         path.forEach(function (key) {
             // reassign matching object, or set to an empty string if there is no match
-            matchingString = matchingString[key] || null;
+            matchingString = matchingString[key] || {};
         });
+        if (_.isObject(matchingString) || _.isEqual(matchingString, {})) {
+            if (options.log) {
+                logging.error(new errors.IncorrectUsageError({
+                    message: `i18n error: path "${msgPath}" was not found`
+                }));
+            }
 
-        if (_.isNull(matchingString)) {
-            console.error('Unable to find matching path [' + msgPath + '] in locale file.\n');
-            matchingString = 'i18n error: path "' + msgPath + '" was not found.';
+            matchingString = blos.errors.errors.anErrorOccurred;
         }
 
         return matchingString;
+    },
+
+    doesTranslationKeyExist: function doesTranslationKeyExist(msgPath) {
+        var translation = I18n.findString(msgPath, {log: false});
+        return translation !== blos.errors.errors.anErrorOccurred;
     },
 
     /**

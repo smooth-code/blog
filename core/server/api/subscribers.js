@@ -53,7 +53,7 @@ subscribers = {
      * @return {Promise<Subscriber>} Subscriber
      */
     read: function read(options) {
-        var attrs = ['id'],
+        var attrs = ['id', 'email'],
             tasks;
 
         /**
@@ -63,7 +63,18 @@ subscribers = {
          * @returns {Object} options
          */
         function doQuery(options) {
-            return models.Subscriber.findOne(options.data, _.omit(options, ['data']));
+            return models.Subscriber.findOne(options.data, _.omit(options, ['data']))
+                .then(function onModelResponse(model) {
+                    if (!model) {
+                        return Promise.reject(new errors.NotFoundError({
+                            message: i18n.t('errors.api.subscribers.subscriberNotFound')
+                        }));
+                    }
+
+                    return {
+                        subscribers: [model.toJSON(options)]
+                    };
+                });
         }
 
         // Push all of our tasks into a `tasks` array in the correct order
@@ -74,13 +85,7 @@ subscribers = {
         ];
 
         // Pipeline calls each task passing the result of one to be the arguments for the next
-        return pipeline(tasks, options).then(function formatResponse(result) {
-            if (result) {
-                return {subscribers: [result.toJSON(options)]};
-            }
-
-            return Promise.reject(new errors.NotFoundError({message: i18n.t('errors.api.subscribers.subscriberNotFound')}));
-        });
+        return pipeline(tasks, options);
     },
 
     /**
@@ -114,6 +119,11 @@ subscribers = {
 
                         return Promise.reject(error);
                     });
+                })
+                .then(function onModelResponse(model) {
+                    return {
+                        subscribers: [model.toJSON(options)]
+                    };
                 });
         }
 
@@ -125,10 +135,7 @@ subscribers = {
         ];
 
         // Pipeline calls each task passing the result of one to be the arguments for the next
-        return pipeline(tasks, object, options).then(function formatResponse(result) {
-            var subscriber = result.toJSON(options);
-            return {subscribers: [subscriber]};
-        });
+        return pipeline(tasks, object, options);
     },
 
     /**
@@ -148,7 +155,18 @@ subscribers = {
          * @returns {Object} options
          */
         function doQuery(options) {
-            return models.Subscriber.edit(options.data.subscribers[0], _.omit(options, ['data']));
+            return models.Subscriber.edit(options.data.subscribers[0], _.omit(options, ['data']))
+                .then(function onModelResponse(model) {
+                    if (!model) {
+                        return Promise.reject(new errors.NotFoundError({
+                            message: i18n.t('errors.api.subscribers.subscriberNotFound')
+                        }));
+                    }
+
+                    return {
+                        subscribers: [model.toJSON(options)]
+                    };
+                });
         }
 
         // Push all of our tasks into a `tasks` array in the correct order
@@ -159,15 +177,7 @@ subscribers = {
         ];
 
         // Pipeline calls each task passing the result of one to be the arguments for the next
-        return pipeline(tasks, object, options).then(function formatResponse(result) {
-            if (result) {
-                var subscriber = result.toJSON(options);
-
-                return {subscribers: [subscriber]};
-            }
-
-            return Promise.reject(new errors.NotFoundError({message: i18n.t('errors.api.subscribers.subscriberNotFound')}));
-        });
+        return pipeline(tasks, object, options);
     },
 
     /**
@@ -182,6 +192,29 @@ subscribers = {
 
         /**
          * ### Delete Subscriber
+         * If we have an email param, check the subscriber exists
+         * @type {[type]}
+         */
+        function getSubscriberByEmail(options) {
+            if (options.email) {
+                return models.Subscriber.getByEmail(options.email, options)
+                    .then(function (subscriber) {
+                        if (!subscriber) {
+                            return Promise.reject(new errors.NotFoundError({
+                                message: i18n.t('errors.api.subscribers.subscriberNotFound')
+                            }));
+                        }
+
+                        options.id = subscriber.get('id');
+                        return options;
+                    });
+            }
+
+            return options;
+        }
+
+        /**
+         * ### Delete Subscriber
          * Make the call to the Model layer
          * @param {Object} options
          */
@@ -191,8 +224,9 @@ subscribers = {
 
         // Push all of our tasks into a `tasks` array in the correct order
         tasks = [
-            apiUtils.validate(docName, {opts: apiUtils.idDefaultOptions}),
+            apiUtils.validate(docName, {opts: ['id', 'email']}),
             apiUtils.handlePermissions(docName, 'destroy'),
+            getSubscriberByEmail,
             doQuery
         ];
 

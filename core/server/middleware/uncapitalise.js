@@ -2,7 +2,7 @@
 // Usage: uncapitalise(req, res, next)
 // After:
 // Before:
-// App: Admin|Blog|API
+// App: Admin|Site|API
 //
 // Detect upper case in req.path.
 //
@@ -36,14 +36,13 @@ uncapitalise = function uncapitalise(req, res, next) {
      */
     if (/[A-Z]/.test(decodeURIComponent(pathToTest))) {
         redirectPath = (
-          utils.removeOpenRedirectFromUrl((req.originalUrl || req.url).replace(pathToTest, pathToTest.toLowerCase()))
+            utils.removeOpenRedirectFromUrl((req.originalUrl || req.url).replace(pathToTest, pathToTest.toLowerCase()))
         );
 
-        res.set('Cache-Control', 'public, max-age=' + utils.ONE_YEAR_S);
-        res.redirect(301, redirectPath);
-    } else {
-        next();
+        return utils.url.redirect301(res, redirectPath);
     }
+
+    next();
 };
 
 module.exports = uncapitalise;

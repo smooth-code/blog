@@ -1,6 +1,5 @@
 var unidecode  = require('unidecode'),
     _          = require('lodash'),
-    config = require('../config'),
     errors = require('../errors'),
     i18n = require('../i18n'),
     utils,
@@ -22,6 +21,7 @@ utils = {
     /**
      * Timespans in seconds and milliseconds for better readability
      */
+    /* eslint-disable key-spacing */
     ONE_HOUR_S:          3600,
     ONE_DAY_S:          86400,
     ONE_MONTH_S:      2628000,
@@ -34,6 +34,7 @@ utils = {
     ONE_MONTH_MS:  2628000000,
     SIX_MONTH_MS: 15768000000,
     ONE_YEAR_MS:  31536000000,
+    // eslint-enable key-spacing */
 
     /**
      * Return a unique identifier with the given `len`.
@@ -107,12 +108,6 @@ utils = {
             base64String += '=';
         }
         return base64String;
-    },
-
-    redirect301: function redirect301(res, path) {
-        /*jslint unparam:true*/
-        res.set({'Cache-Control': 'public, max-age=' + config.get('caching:301:maxAge')});
-        res.redirect(301, path);
     },
 
     /**

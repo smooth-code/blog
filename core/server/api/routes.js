@@ -57,13 +57,12 @@ module.exports = function apiRoutes() {
     apiRouter.get('/users', mw.authenticatePublic, api.http(api.users.browse));
     apiRouter.get('/users/:id', mw.authenticatePublic, api.http(api.users.read));
     apiRouter.get('/users/slug/:slug', mw.authenticatePublic, api.http(api.users.read));
-    apiRouter.get('/users/email/:email', mw.authenticatePublic, api.http(api.users.read));
+    // NOTE: We don't expose any email addresses via the public api.
+    apiRouter.get('/users/email/:email', mw.authenticatePrivate, api.http(api.users.read));
 
     apiRouter.put('/users/password', mw.authenticatePrivate, api.http(api.users.changePassword));
     apiRouter.put('/users/owner', mw.authenticatePrivate, api.http(api.users.transferOwnership));
     apiRouter.put('/users/:id', mw.authenticatePrivate, api.http(api.users.edit));
-
-    apiRouter.post('/users', mw.authenticatePrivate, api.http(api.users.add));
     apiRouter.del('/users/:id', mw.authenticatePrivate, api.http(api.users.destroy));
 
     // ## Tags
@@ -85,9 +84,11 @@ module.exports = function apiRoutes() {
         api.http(api.subscribers.importCSV)
     );
     apiRouter.get('/subscribers/:id', labs.subscribers, mw.authenticatePrivate, api.http(api.subscribers.read));
+    apiRouter.get('/subscribers/email/:email', labs.subscribers, mw.authenticatePrivate, api.http(api.subscribers.read));
     apiRouter.post('/subscribers', labs.subscribers, mw.authenticatePublic, api.http(api.subscribers.add));
     apiRouter.put('/subscribers/:id', labs.subscribers, mw.authenticatePrivate, api.http(api.subscribers.edit));
     apiRouter.del('/subscribers/:id', labs.subscribers, mw.authenticatePrivate, api.http(api.subscribers.destroy));
+    apiRouter.del('/subscribers/email/:email', labs.subscribers, mw.authenticatePrivate, api.http(api.subscribers.destroy));
 
     // ## Roles
     apiRouter.get('/roles/', mw.authenticatePrivate, api.http(api.roles.browse));
@@ -199,6 +200,10 @@ module.exports = function apiRoutes() {
         validation.upload({type: 'redirects'}),
         api.http(api.redirects.upload)
     );
+
+    // ## Webhooks (RESTHooks)
+    apiRouter.post('/webhooks', mw.authenticatePrivate, api.http(api.webhooks.add));
+    apiRouter.del('/webhooks/:id', mw.authenticatePrivate, api.http(api.webhooks.destroy));
 
     return apiRouter;
 };
